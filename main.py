@@ -8,7 +8,7 @@ from scipy.fft import fft, fftfreq
 
 file="20220113-after-stim-3-ku"
 extension=".wav"
-
+#a
 #Create read and write filenames
 read_filename=file+extension
 write_filename=file+"-bowel-part"+extension
