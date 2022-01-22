@@ -4,9 +4,15 @@ import matplotlib.pyplot as plt
 from scipy.signal import savgol_filter
 from numpy import size
 from scipy.fft import fft, fftfreq
-
+import csv
+from datetime import datetime
+from os import getcwd
+from re import split
+from sklearn.utils.metaestimators import if_delegate_has_method
 
 file="20220113-after-stim-3-ku"
+filter_name = split(r"-", file)
+print(filter_name[0])
 extension=".wav"
 #a
 #Create read and write filenames
@@ -76,8 +82,28 @@ plt.plot(xf, 2.0/N * np.abs(bowel_fft[0:N//2]))
 plt.grid()
     
 total_area = sum(abs(bowel_array))/100*0.003 #For conversion to the values obtained in MATLAB
+avg_area = total_area/bowel_duration
 print("%.2f" % bowel_duration)
 print("%.2f" %total_area)    
     
 plt.show()
+
+header_switch=0
+FILE_NAME = "data.csv"
+if len(filter_name)<5:
+    filter_name[4]="AVO"
+    
+#with open(FILE_NAME, 'r') as csvfile:
+#    csvreader = csv.reader(csvfile)
+#    for row in csvreader:
+#        if len(row)<1:
+#            header_switch=1
+            
+with open(FILE_NAME, "a", newline='') as csv_file:
+    writer = csv.writer(csv_file, delimiter=",")
+    if header_switch:
+        writer.writerow(['Date', 'Number of Measurement', 'User', 'Condition' 'Bowel Duration (s)', 'Amplitude', 'Avg. Amplitude'])
+    writer.writerow([filter_name[0], filter_name[3], filter_name[4], filter_name[1]+''+filter_name[2], str("%.2f" % bowel_duration), str("%.2f" % total_area), str("%.2f" % avg_area)])
+    csv_file.close()  
+    
     
