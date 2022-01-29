@@ -96,10 +96,9 @@ for file in dir_list:
     avg_area = total_area/bowel_duration
     #print("%.2f" % bowel_duration)
     #print("%.2f" %total_area)    
-        
     FILE_NAME = "data.csv"
     if len(filter_name)<5:
-        filter_name[4]="AVO"
+        filter_name.append("AVO")
         
     #with open(FILE_NAME, 'r') as csvfile:
     #    csvreader = csv.reader(csvfile)
