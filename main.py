@@ -1,3 +1,5 @@
+#Token: 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
+
 import numpy as np
 from scipy.io import wavfile
 import matplotlib.pyplot as plt
@@ -10,8 +12,11 @@ from os import getcwd, listdir
 from re import split
 import glob
 from sklearn.utils.metaestimators import if_delegate_has_method
+import os.path
 
-write_flag = 1
+write_switch = 1
+
+file_exists = os.path.isfile('data.csv')
 
 #Check all the sound files in the current directory
 dir_list = glob.glob("*.wav")
@@ -29,6 +34,7 @@ for file in dir_list:
     t=np.linspace(0,length_audio-1,length_audio-1)/audio_freq_sample
     #[fund_freq,loc] = pitch(audio_in,audio_freq_sample);
     
+    '''
     #Plot the time domain signal
     plt.figure(figsize=(10, 8))
     time=np.linspace(audio_duration/length_audio,audio_duration,length_audio);
@@ -38,6 +44,7 @@ for file in dir_list:
     plt.plot(time,audio_in)
     plt.axhline(y=100, color='r', linestyle='-')
     plt.grid()
+    '''
     
     cpm=0
     max_array=[]
@@ -46,7 +53,7 @@ for file in dir_list:
     bowel_array=np.array(bowel_array)
     
     for i in range(1,length_audio,200):
-        if np.amax(audio_in[i:i+199])>100 and np.amax(audio_in[i:i+199])!=audio_in[i+199]:
+        if np.amax(audio_in[i:i+198])>100 and np.amax(audio_in[i:i+198])!=audio_in[i+198]:
             cpm+=1
             max_index = np.argmax(audio_in[i:i+199])
             m = np.amax(audio_in[i:i+199])
@@ -56,10 +63,12 @@ for file in dir_list:
             if max_index>29 and max_index<479931:
                 bowel_array = np.concatenate((bowel_array, audio_in[max_index-30:max_index+70]))
                 #audio_in[max_index-30:max_index+70]=0
-        
+    
+    bowel_duration=(audio_duration*len(bowel_array))/length_audio
+
+    '''    
     #Plot the bowel sound signal
     plt.figure(figsize=(10, 8))
-    bowel_duration=(audio_duration*len(bowel_array))/length_audio
     time_bowel=np.linspace(audio_duration/length_audio,bowel_duration,len(bowel_array))
     plt.xlabel("Time (s)")
     plt.ylabel("Signal intensity (a.u.)")
@@ -81,13 +90,13 @@ for file in dir_list:
     plt.title("Single sided FFT of the bowel signal")
     plt.plot(xf, 2.0/N * np.abs(bowel_fft[0:N//2]))
     plt.grid()
-        
+    '''   
+                
     total_area = sum(abs(bowel_array))/100*0.003 #For conversion to the values obtained in MATLAB
     avg_area = total_area/bowel_duration
-    print("%.2f" % bowel_duration)
-    print("%.2f" %total_area)    
+    #print("%.2f" % bowel_duration)
+    #print("%.2f" %total_area)    
         
-    header_switch=0
     FILE_NAME = "data.csv"
     if len(filter_name)<5:
         filter_name[4]="AVO"
@@ -98,14 +107,27 @@ for file in dir_list:
     #        if len(row)<1:
     #            header_switch=1
     
-    if write_flag: 
+    #Calculate a score for ordering in .csv file
+    if filter_name[1]=='before':
+        condition_multiplier=1
+    elif filter_name[1]=='after':
+        condition_multiplier=3
+    else:
+        condition_multiplier=2
+        
+    condition = int(filter_name[3])+10*condition_multiplier
+    
+    order_score = str(100*int(filter_name[0])+condition)
+    
+    if write_switch: 
         print(read_filename)           
         with open(FILE_NAME, "a", newline='') as csv_file:
             writer = csv.writer(csv_file, delimiter=" ")
-            if header_switch:
-                writer.writerow(['Date', 'Number of Measurement', 'User', 'Condition', 'Bowel Duration (s)', 'Amplitude', 'Avg. Amplitude'])
-            writer.writerow([filter_name[0], filter_name[3], filter_name[4], filter_name[1]+''+filter_name[2], str("%.2f" % bowel_duration).replace('.', ','), str("%.2f" % total_area).replace('.', ','), str("%.2f" % avg_area).replace('.', ',')])
+            if not file_exists:
+                writer.writerow(['Order', 'Date', 'NumberofMeasurement', 'User', 'Condition', 'BowelDuration(s)', 'Amplitude', 'Avg.Amplitude'])
+                file_exists = os.path.isfile('data.csv')
+            writer.writerow([order_score, filter_name[0], filter_name[3], filter_name[4], filter_name[1]+''+filter_name[2], str("%.2f" % bowel_duration).replace('.', ','), str("%.2f" % total_area).replace('.', ','), str("%.2f" % avg_area).replace('.', ',')])
             csv_file.close()  
         
-    #plt.show()
+#plt.show()
         
